@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fathimas Vegetables and Fruits — POS</title>
+<style>
+:root{--bg:#f3f6f4;--surface:#fff;--ink:#17231d;--muted:#738078;--line:#e3eae5;--green:#168653;--green2:#0e6b40;--soft:#e9f6ef;--red:#c84c4c;--shadow:0 8px 28px rgba(24,54,38,.07);--radius:16px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select{font:inherit}button{cursor:pointer}
+.topbar{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:10}
+.brand{display:flex;align-items:center;gap:11px;font-weight:850;font-size:18px;letter-spacing:-.5px}.brandmark{height:38px;width:38px;background:var(--green);color:white;border-radius:12px;display:grid;place-items:center;font-size:21px}
+.topmeta{font-size:11px;color:var(--muted)}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22a06b;margin-right:6px}
+.shell{max-width:1500px;margin:auto;padding:14px 16px 24px}.nav{display:flex;gap:8px;margin-bottom:19px;flex-wrap:wrap}.navbtn{border:1px solid var(--line);background:#fff;color:#65736b;border-radius:11px;padding:10px 16px;font-weight:750;font-size:13px}.navbtn.active{background:var(--green);color:white;border-color:var(--green)}.navbtn span{margin-right:7px}
+.page{display:none}.page.active{display:block}.pagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 0 17px}.pagehead h1{font-size:25px;letter-spacing:-.8px;margin:0 0 4px}.sub{font-size:13px;color:var(--muted)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:12px;align-items:start}.panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}.catalog{padding:13px}.toolbar{display:flex;gap:9px;margin-bottom:12px}.search{height:43px;flex:1;min-width:0;border:1px solid var(--line);border-radius:11px;padding:0 13px;outline:none}.search:focus,input:focus,select:focus{border-color:#70b993;box-shadow:0 0 0 3px #16865318;outline:none}.categories{display:flex;gap:7px;overflow:auto;padding-bottom:13px}.cat{border:1px solid var(--line);background:#fff;color:#65736b;border-radius:99px;padding:7px 12px;font-size:11px;font-weight:750;white-space:nowrap}.cat.active{background:var(--soft);border-color:#b6dfc7;color:var(--green2)}
+.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:10px}.product{background:#fff;border:1px solid var(--line);border-radius:13px;padding:9px;text-align:left;min-height:96px;display:flex;flex-direction:column;justify-content:space-between;transition:.15s}.product:hover{border-color:#8bc5a4;transform:translateY(-2px);box-shadow:var(--shadow)}.prodtop{display:flex;justify-content:space-between;align-items:center}.emoji{font-size:0px}.plus{width:24px;height:24px;border-radius:8px;background:var(--soft);color:var(--green);display:grid;place-items:center;font-weight:900}.prodname{font-size:13px;font-weight:800;margin-top:10px}.prodprice{font-size:10px;color:var(--muted);margin-top:4px}.empty{grid-column:1/-1;padding:35px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+.cart{position:sticky;top:68px;display:flex;flex-direction:column;max-height:calc(100vh - 82px);min-height:560px}.carthead{padding:12px 14px 10px;border-bottom:1px solid var(--line)}.carttitle{display:flex;justify-content:space-between;align-items:center}.carttitle h2{font-size:18px;margin:0}.pill{font-size:10px;font-weight:850;color:var(--green2);background:var(--soft);padding:5px 9px;border-radius:30px}.carttools{margin-top:13px;display:flex;align-items:center;justify-content:space-between;gap:8px}.mutedlabel{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:800}.switch{display:flex;background:#f0f4f1;border-radius:9px;padding:3px}.switch button{border:0;background:transparent;color:#738078;border-radius:7px;padding:7px 10px;font-size:10px;font-weight:850}.switch button.active{background:#fff;color:var(--green2);box-shadow:0 1px 4px #00000012}
+.customerbox{padding:11px 18px;border-bottom:1px solid var(--line);background:#fbfdfb}.customerbox label,.field label{display:block;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}.customerrow{display:flex;gap:7px}.customerrow select{flex:1;min-width:0}.customerrow button{border:1px solid #b9ddc8;background:var(--soft);color:var(--green2);border-radius:9px;padding:0 11px;font-weight:800}
+select,input{border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);height:36px;padding:0 9px;font-size:12px;width:100%}
+.pricehint{padding:9px 18px;color:var(--muted);font-size:10px;background:#fcfdfc;border-bottom:1px solid var(--line)}
+.cartlabels,.cartrow{display:grid;grid-template-columns:minmax(80px,1fr) 58px 75px 20px;gap:6px;align-items:center}.cartlabels{padding:10px 14px 6px;font-size:9px;color:#8a978f;font-weight:850;text-transform:uppercase}.cartlist{overflow:auto;flex:1;padding:0 14px}.cartrowwrap{padding:10px 0;border-bottom:1px solid #edf1ee}.itemname{font-size:11px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.unit{font-size:9px;color:var(--muted);margin-top:3px}.qty,.rate{height:32px;text-align:center;padding:0 3px;font-size:11px;font-weight:750}.rate{color:var(--green2)}.remove{border:0;background:none;color:#9ba69f;font-size:19px;padding:0}.pricepair{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.pricepair label{display:block;font-size:9px;color:#829087;font-weight:850;text-transform:uppercase;margin-bottom:3px}.pricepair input{height:29px;font-size:11px;text-align:center;color:var(--green2);font-weight:700}.linetotal{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:7px}.linetotal strong{font-size:12px;color:var(--ink)}
+.emptycart{padding:45px 15px;text-align:center;color:var(--muted)}.emptycart b{display:block;color:#47554c;font-size:13px;margin:8px 0 4px}.emptycart small{font-size:11px}
+.cartfoot{padding:10px 13px 12px;border-top:1px solid var(--line)}.sumrow{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin:6px 0}.grand{align-items:center;margin:12px 0 14px;color:var(--ink);font-weight:850;font-size:13px}.grand strong{font-size:23px;color:var(--green2)}.actions{display:flex;gap:8px}.btn{height:41px;border:1px solid var(--line);background:white;color:#59675f;border-radius:10px;padding:0 13px;font-size:11px;font-weight:800}.btn.primary{flex:1;background:var(--green);border-color:var(--green);color:#fff}.btn.primary:hover{background:var(--green2)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.sales-report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.sales-report-grid .stat strong{font-variant-numeric:tabular-nums}.sales-report-table td.num,.sales-report-table th.num{text-align:right}.sales-report-table td.item{font-weight:800}.reportfilters{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:16px;border-bottom:1px solid var(--line)}.field{min-width:145px;flex:1}.field select,.field input{height:39px}.filteractions{display:flex;gap:7px}.reportbody{padding:17px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.stat{background:#f8fbf9;border:1px solid var(--line);border-radius:12px;padding:13px}.stat span{display:block;font-size:10px;color:var(--muted);font-weight:750}.stat strong{display:block;font-size:20px;margin-top:6px;letter-spacing:-.5px}.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:12px}th{text-align:left;background:#f7faf8;color:#738078;font-size:10px;text-transform:uppercase;letter-spacing:.4px}th,td{padding:11px 10px;border-bottom:1px solid var(--line);white-space:nowrap}td:last-child,th:last-child{text-align:right}.reporttitle{font-size:15px;font-weight:850;margin:0 0 11px}.hint{font-size:11px;color:var(--muted);line-height:1.5;margin-top:12px}.customer-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;padding:16px}.customer-card{border:1px solid var(--line);border-radius:13px;padding:14px;background:#fff}.customer-card h3{font-size:14px;margin:0 0 5px}.customer-card p{font-size:11px;color:var(--muted);margin:0 0 10px}.customer-card button{border:1px solid #b9ddc8;background:var(--soft);color:var(--green2);border-radius:8px;padding:7px 10px;font-size:10px;font-weight:800}.customer-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.customer-actions .danger{border-color:#e6c9c5;background:#fff5f3;color:#a33b32}
+.item-toolbar{display:flex;gap:9px;align-items:center;padding:13px;border-bottom:1px solid var(--line)}.item-toolbar input{max-width:360px}.item-table{padding:0 13px 13px}.item-actions{display:flex;gap:6px;justify-content:flex-end}.item-actions button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 9px;font-size:10px;font-weight:750}.item-actions .delete{color:var(--red)}.modal .field input,.modal .field select{height:39px}
+.ledgerbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:13px;border-bottom:1px solid var(--line)}.ledgerbar select{max-width:360px;height:40px}.ledger-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px}.ledger-summary .stat strong{font-variant-numeric:tabular-nums}.ledger-table{padding:0 14px 14px}.ledger-table table td.num,.ledger-table table th.num{text-align:right}.ledger-actions{display:flex;gap:7px;align-items:center}.ledger-actions button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 9px;font-size:10px;font-weight:750}.ledger-actions .del{color:var(--red)}.ledger-empty{padding:28px;text-align:center;color:var(--muted)}.ledger-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ledger-form-grid .field{min-width:0}.ledger-customer-title{padding:14px 14px 0;font-weight:850;font-size:15px}
+@media(max-width:600px){.ledger-summary{gap:6px;padding:10px}.ledger-summary .stat{padding:9px}.ledger-summary .stat strong{font-size:16px}.ledger-table{padding:0 8px 10px}.ledger-table table{font-size:11px}.ledger-table th,.ledger-table td{padding:9px 7px}.ledgerbar select{max-width:none;width:100%}.ledger-form-grid{grid-template-columns:1fr}}
+.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,15px);opacity:0;background:#17231d;color:#fff;padding:11px 16px;border-radius:10px;font-size:12px;transition:.2s;z-index:30;pointer-events:none}.toast.show{opacity:1;transform:translate(-50%,0)}
+.modalback{display:none;position:fixed;inset:0;background:#10201877;z-index:40;align-items:center;justify-content:center;padding:15px}.modalback.show{display:flex}.modal{background:#fff;border-radius:16px;width:min(400px,100%);padding:20px;box-shadow:0 20px 70px #0003}.modal h3{margin:0 0 15px}.modal .field{margin-bottom:12px}.modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+@media(max-width:1050px){.layout{grid-template-columns:minmax(0,1fr) 390px}}
+@media(max-width:800px){.topbar{height:60px;padding:0 14px}.shell{padding:14px}.layout{display:flex;flex-direction:column}.catalog,.cart{width:100%}.cart{position:relative;top:auto;max-height:none;min-height:480px}.cartlist{min-height:100px;max-height:380px}.products{grid-template-columns:repeat(3,minmax(0,1fr))}.pagehead{align-items:flex-start}.stats{grid-template-columns:1fr 1fr}}
+@media(max-width:470px){.products{grid-template-columns:repeat(2,minmax(0,1fr))}.cartlabels,.cartrow{grid-template-columns:minmax(70px,1fr) 52px 68px 18px;gap:4px}.topmeta{display:none}.stats{grid-template-columns:1fr 1fr}.filteractions{width:100%}.filteractions button{flex:1}}
+
+#printReceipt{display:none}
+@media print{
+  @page{size:80mm auto;margin:3mm}
+  body{background:#fff!important;color:#000!important}
+  body *{visibility:hidden!important}
+  #printReceipt,#printReceipt *{visibility:visible!important}
+  #printReceipt{display:block!important;position:absolute;left:0;top:0;width:72mm;color:#000;font-family:ui-monospace,"Courier New",monospace;font-size:11px;line-height:1.35}
+  .receipt-center{text-align:center}.receipt-brand{font-size:18px;font-weight:900;letter-spacing:1px}
+  .receipt-sub{font-size:9px;margin:2px 0 8px}.receipt-rule{border-top:1px dashed #000;margin:7px 0}
+  .receipt-meta{font-size:10px}.receipt-items{width:100%;border-collapse:collapse;font-size:10px}
+  .receipt-items th,.receipt-items td{padding:3px 0;border:0;white-space:normal}
+  .receipt-items th{text-align:left;background:none;color:#000}.receipt-items .num{text-align:right}
+  .receipt-total{display:flex;justify-content:space-between;font-weight:900;font-size:14px;margin-top:7px}
+  .receipt-thanks{text-align:center;margin-top:12px;font-weight:700}
+}
+
+/* Premium visual theme — appearance only */
+:root{
+ --bg:#f4f2eb;--surface:#fffefa;--ink:#1d2c24;--muted:#788078;--line:#e6e1d5;
+ --green:#174b35;--green2:#103b2a;--soft:#edf3ed;--red:#b84b43;
+ --shadow:0 10px 30px rgba(37,48,39,.075);--radius:17px
+}
+body{background:linear-gradient(145deg,#f7f5ef 0%,#eef1e9 100%);color:var(--ink);font-family:Inter,"Segoe UI",system-ui,sans-serif}
+.topbar{height:72px;background:rgba(255,254,250,.96);border-bottom:1px solid #e5dfd1;box-shadow:0 4px 18px rgba(37,48,39,.045);padding:0 clamp(14px,3vw,34px);backdrop-filter:blur(12px)}
+.brand{gap:13px;font-size:16px;letter-spacing:.7px;color:#173e2d}
+.brandmark{height:44px;width:44px;background:linear-gradient(145deg,#245b40,#103b2a);border:1px solid #c7a66b;color:#f6e6bd;border-radius:14px;font-family:Georgia,serif;font-size:25px;box-shadow:0 5px 13px #153e2b26}
+.brandname{display:flex;flex-direction:column;gap:3px;font-weight:900;line-height:1.05;letter-spacing:1.1px}
+.brandname small{font-size:9px;letter-spacing:1.65px;color:#9a7942;font-weight:850}
+.topmeta{font-size:11px;font-weight:650;color:#777d73}
+.shell{max-width:1540px;padding:22px clamp(12px,2vw,24px) 32px}
+.nav{gap:8px;margin-bottom:22px;padding:7px;background:#e9e8de;border:1px solid #e0ddcf;border-radius:15px;width:fit-content;max-width:100%;box-shadow:inset 0 1px 2px #ffffffa8}
+.navbtn{border:1px solid transparent;background:transparent;color:#5f6c62;border-radius:10px;padding:10px 15px;font-size:12px;font-weight:800;transition:all .18s ease}
+.navbtn:hover{background:#fffefa;color:#174b35;border-color:#e6e1d5}
+.navbtn.active{background:linear-gradient(135deg,#1d583d,#103b2a);color:#fff;border-color:#174b35;box-shadow:0 4px 10px #153e2b26}
+.pagehead{margin-bottom:19px}
+.pagehead h1{font-size:27px;letter-spacing:-.85px;color:#193b2b;font-weight:850}
+.sub{font-size:12px;color:#7c8279}
+.panel{background:var(--surface);border:1px solid #e5e0d4;border-radius:17px;box-shadow:0 8px 25px rgba(39,49,39,.055)}
+.catalog{padding:16px}
+.search{height:45px;background:#fffefa;border-color:#e4dfd3;border-radius:12px;padding:0 15px}
+.search::placeholder{color:#a1a59b}
+.categories{padding-bottom:15px}
+.cat{background:#fbfaf5;border-color:#e5e0d4;color:#69736a;padding:8px 14px;transition:.16s}
+.cat.active{background:#eaf1e9;border-color:#bfd0bd;color:#174b35}
+.products{gap:11px}
+.product{background:linear-gradient(160deg,#fffefa,#fbfaf5);border-color:#e7e2d7;border-radius:14px;padding:12px;min-height:105px;box-shadow:0 2px 7px rgba(39,49,39,.025)}
+.product:hover{border-color:#b5c8b2;transform:translateY(-2px);box-shadow:0 9px 20px rgba(30,65,43,.09)}
+.plus{background:#eaf1e9;color:#174b35;border-radius:8px}
+.prodname{font-size:13px;color:#25382c}
+.prodprice{font-size:11px;color:#8a806d}
+.cart{top:84px;border-color:#e1ddcf}
+.carthead{padding:15px 16px 12px;background:#fffefa}
+.carttitle h2{color:#193b2b}
+.pill{background:#edf3e9;color:#24583b}
+.switch{background:#eeeee6}
+.switch button.active{color:#174b35}
+.customerbox{background:#f8f7f0}
+.customerrow button,.customer-card button{border-color:#c8d5c2;background:#edf3e9;color:#174b35}
+select,input{border-color:#e2ded3;background:#fffefa}
+.pricehint{background:#faf9f3}
+.rate,.pricepair input{color:#174b35}
+.cartfoot{background:#fffefa}
+.grand strong{color:#174b35}
+.btn{border-color:#e1ddcf;border-radius:10px;background:#fffefa}
+.btn.primary{background:linear-gradient(135deg,#1d583d,#103b2a);border-color:#174b35;box-shadow:0 4px 10px #153e2b20}
+.btn.primary:hover{background:#0d3525}
+.stats .stat,.stat{background:linear-gradient(145deg,#fbfaf5,#f5f4ec);border-color:#e5e0d4;border-radius:14px}
+th{background:#f2f2e9;color:#687469}
+th,td{border-bottom-color:#e9e5da}
+.customer-card{background:#fffefa;border-color:#e5e0d4;border-radius:14px;box-shadow:0 3px 12px rgba(39,49,39,.035)}
+.item-toolbar,.ledgerbar{background:#fffefa;border-bottom-color:#e8e3d8}
+.toast{background:#173d2b;border:1px solid #c6a66b;box-shadow:0 8px 25px #102c1e35}
+.modal{background:#fffefa;border:1px solid #e7e0d1;border-radius:18px;box-shadow:0 22px 70px rgba(20,35,25,.22)}
+@media(max-width:800px){.topbar{height:66px}.nav{width:100%;border-radius:13px}.navbtn{padding:9px 11px}}
+@media(max-width:470px){.brandmark{height:39px;width:39px}.brandname{font-size:13px}.brandname small{font-size:8px}.nav{gap:5px}.navbtn{font-size:11px;padding:8px 9px}}
+
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="brandmark">F</div><span class="brandname">FATHIMAS <small>VEGETABLES &amp; FRUITS</small></span></div>
+  <div class="topmeta" id="syncStatus"><span class="dot"></span>Offline-ready · Local data saved</div>
+</header>
+<div class="shell">
+  <nav class="nav">
+    <button class="navbtn active" data-page="retail">Retail Billing</button>
+    <button class="navbtn" data-page="wholesale">Wholesale Billing</button>
+    <button class="navbtn" data-page="reports">Wholesale Reports</button>
+    <button class="navbtn" data-page="sales-report">Sales Report</button>
+    <button class="navbtn" data-page="customers">Customers</button>
+    <button class="navbtn" data-page="ledger">Customer Ledger</button>
+    <button class="navbtn" data-page="items">Items</button>
+  </nav>
+
+  <section class="page active" id="page-retail">
+    <div class="pagehead"><div><h1>Retail Billing</h1><div class="sub">Quick counter billing for retail customers.</div></div></div>
+    <div class="layout">
+      <div class="panel catalog"><div class="toolbar"><input class="search" id="retailSearch" placeholder="Search vegetables and fruits..."></div><div class="categories" id="retailCats"></div><div class="products" id="retailProducts"></div></div>
+      <aside class="panel cart" id="retailCart"></aside>
+    </div>
+  </section>
+
+  <section class="page" id="page-wholesale">
+    <div class="pagehead"><div><h1>Wholesale Billing</h1><div class="sub">Customer-based bulk billing with editable wholesale rates.</div></div></div>
+    <div class="layout">
+      <div class="panel catalog"><div class="toolbar"><input class="search" id="wholesaleSearch" placeholder="Search vegetables and fruits..."></div><div class="categories" id="wholesaleCats"></div><div class="products" id="wholesaleProducts"></div></div>
+      <aside class="panel cart" id="wholesaleCart"></aside>
+    </div>
+  </section>
+
+  <section class="page" id="page-reports">
+    <div class="pagehead"><div><h1>Wholesale Reports</h1><div class="sub">See the total quantity each customer purchased within a selected date range.</div></div></div>
+    <div class="panel">
+      <div class="reportfilters">
+        <div class="field"><label>Customer</label><select id="reportCustomer"><option value="all">All wholesale customers</option></select></div>
+        <div class="field"><label>From date</label><input type="date" id="fromDate"></div>
+        <div class="field"><label>To date</label><input type="date" id="toDate"></div>
+        <div class="filteractions"><button class="btn primary" id="applyReport">Apply filter</button><button class="btn" id="todayReport">Today</button></div>
+      </div>
+      <div class="reportbody" id="reportBody"></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-sales-report">
+    <div class="pagehead"><div><h1>Sales Report</h1><div class="sub">Item-wise sales across retail and wholesale bills.</div></div></div>
+    <div class="panel">
+      <div class="reportfilters">
+        <div class="field"><label>Sale type</label><select id="salesReportType"><option value="all">All sales</option><option value="retail">Retail only</option><option value="wholesale">Wholesale only</option></select></div>
+        <div class="field"><label>From date</label><input type="date" id="salesFromDate"></div>
+        <div class="field"><label>To date</label><input type="date" id="salesToDate"></div>
+        <div class="filteractions"><button class="btn primary" id="applySalesReport">Apply filter</button><button class="btn" id="todaySalesReport">Today</button></div>
+      </div>
+      <div class="reportbody" id="salesReportBody"></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-customers">
+    <div class="pagehead"><div><h1>Wholesale Customers</h1><div class="sub">Manage the stores and customers who purchase wholesale.</div></div><button class="btn primary" id="addCustomerBtn">＋ Add customer</button></div>
+    <div class="panel"><div class="customer-list" id="customerList"></div></div>
+  </section>
+
+  <section class="page" id="page-ledger">
+    <div class="pagehead"><div><h1>Customer Ledger</h1><div class="sub">Manual customer account book · Credit given, credit paid and balance.</div></div><button class="btn primary" id="addLedgerEntryBtn">＋ Add entry</button></div>
+    <div class="panel">
+      <div class="ledgerbar"><div class="field" style="max-width:360px;margin:0"><label>Select customer / store</label><select id="ledgerCustomer"><option value="">Select customer</option></select></div><div class="sub" id="ledgerEntryCount"></div></div>
+      <div id="ledgerContent"><div class="ledger-empty">Select a customer to view their ledger.</div></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-items">
+    <div class="pagehead"><div><h1>Items</h1><div class="sub">Add, edit or remove vegetables and fruits. Changes appear in both billing pages.</div></div><button class="btn primary" id="addItemBtn">＋ Add item</button></div>
+    <div class="panel"><div class="item-toolbar"><input id="itemSearch" placeholder="Search items..."><span class="sub" id="itemCount"></span></div><div class="item-table tablewrap" id="itemList"></div></div>
+  </section>
+</div>
+<div id="printReceipt" aria-hidden="true"></div>
+<div class="toast" id="toast"></div>
+<div class="modalback" id="customerModal">
+  <div class="modal"><h3 id="customerModalTitle">Add wholesale customer</h3>
+    <div class="field"><label>Customer / Store name</label><input id="newCustomerName" placeholder="e.g. ABC Vegetable Store"></div>
+    <div class="field"><label>Phone number (optional)</label><input id="newCustomerPhone" placeholder="Phone number" inputmode="tel"></div>
+    <div class="modalactions"><button class="btn" id="cancelCustomer">Cancel</button><button class="btn primary" id="saveCustomer">Save customer</button></div>
+  </div>
+</div>
+<div class="modalback" id="ledgerModal">
+  <div class="modal"><h3 id="ledgerModalTitle">Add ledger entry</h3>
+    <div class="field"><label>Customer / Store</label><select id="ledgerFormCustomer"><option value="">Select customer</option></select></div>
+    <div class="field"><label>Date</label><input id="ledgerDate" type="date"></div>
+    <div class="field"><label>Description (optional)</label><input id="ledgerNote" placeholder="e.g. Cash payment / Opening balance"></div>
+    <div class="ledger-form-grid">
+      <div class="field"><label>Credit Given (₹)</label><input id="ledgerCreditGiven" type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label>Credit Paid (₹)</label><input id="ledgerCreditPaid" type="number" min="0" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="modalactions"><button class="btn" id="cancelLedger">Cancel</button><button class="btn primary" id="saveLedger">Save entry</button></div>
+  </div>
+</div>
+<div class="modalback" id="itemModal">
+  <div class="modal"><h3 id="itemModalTitle">Add item</h3>
+    <div class="field"><label>Item name</label><input id="itemName" placeholder="e.g. Tomato"></div>
+    <div class="field"><label>Category</label><input id="itemCategory" list="itemCategories" placeholder="Vegetables, Fruits, Leafy..."><datalist id="itemCategories"><option value="Vegetables"><option value="Fruits"><option value="Leafy"></datalist></div>
+    <div class="field"><label>Unit</label><input id="itemUnit" placeholder="kg, bunch, piece..."></div>
+    <div class="field"><label>Wholesale price (₹)</label><input id="itemWholesale" type="number" min="0" step="0.01"></div>
+    <div class="field"><label>Retail price (₹)</label><input id="itemRetail" type="number" min="0" step="0.01"></div>
+    <div class="modalactions"><button class="btn" id="cancelItem">Cancel</button><button class="btn primary" id="saveItem">Save item</button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(()=> {
+const DB_KEY='vegbill_v2_data';
+const seed=[
+{id:'tomato',name:'Tomato',category:'Vegetables',unit:'kg',wholesale:32,retail:40},
+{id:'onion',name:'Onion',category:'Vegetables',unit:'kg',wholesale:45,retail:55},
+{id:'potato',name:'Potato',category:'Vegetables',unit:'kg',wholesale:28,retail:35},
+{id:'carrot',name:'Carrot',category:'Vegetables',unit:'kg',wholesale:48,retail:60},
+{id:'cabbage',name:'Cabbage',category:'Vegetables',unit:'kg',wholesale:24,retail:30},
+{id:'green-chilli',name:'Green Chilli',category:'Vegetables',unit:'kg',wholesale:65,retail:80},
+{id:'beetroot',name:'Beetroot',category:'Vegetables',unit:'kg',wholesale:32,retail:40},
+{id:'cucumber',name:'Cucumber',category:'Vegetables',unit:'kg',wholesale:24,retail:30},
+{id:'brinjal',name:'Brinjal',category:'Vegetables',unit:'kg',wholesale:32,retail:40},
+{id:'beans',name:'Beans',category:'Vegetables',unit:'kg',wholesale:56,retail:70},
+{id:'banana',name:'Banana',category:'Fruits',unit:'kg',wholesale:36,retail:45},
+{id:'apple',name:'Apple',category:'Fruits',unit:'kg',wholesale:120,retail:150},
+{id:'orange',name:'Orange',category:'Fruits',unit:'kg',wholesale:64,retail:80},
+{id:'coriander',name:'Coriander',category:'Leafy',unit:'bunch',wholesale:12,retail:15},
+{id:'mint',name:'Mint Leaves',category:'Leafy',unit:'bunch',wholesale:10,retail:12}
+];
+let db=loadDB(),carts={retail:[],wholesale:[]},cats={retail:'All',wholesale:'All'};
+function loadDB(){try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d&&Array.isArray(d.products)&&Array.isArray(d.customers)&&Array.isArray(d.bills)){d.ledgerEntries=Array.isArray(d.ledgerEntries)?d.ledgerEntries:[];d._sync=d._sync||{lastSync:null,deletedProductIds:[],deletedLedgerEntryIds:[]};d._sync.deletedProductIds=d._sync.deletedProductIds||[];d._sync.deletedCustomerIds=d._sync.deletedCustomerIds||[];d._sync.deletedLedgerEntryIds=d._sync.deletedLedgerEntryIds||[];['products','customers','bills','ledgerEntries'].forEach(k=>{const m=new Map();d[k].forEach(x=>{if(x&&x.id)m.set(String(x.id),x)});d[k]=[...m.values()]});return d;}}catch(e){}return{products:seed.map(x=>({...x,updated_at:new Date().toISOString()})),customers:[],bills:[],ledgerEntries:[],_sync:{lastSync:null,deletedProductIds:[],deletedCustomerIds:[],deletedLedgerEntryIds:[]}};}
+function saveDB(){try{db._sync=db._sync||{lastSync:null};localStorage.setItem(DB_KEY,JSON.stringify(db));scheduleSync();}catch(e){notify('Could not save data. Browser storage may be full.');}}
+
+// Configure with your Supabase Project URL and publishable/anon key. Never use service_role here.
+const SUPABASE_URL='YOUR_SUPABASE_PROJECT_URL';
+const SUPABASE_ANON_KEY='YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY';
+const supabaseReady=()=>SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.includes('YOUR_')&&SUPABASE_ANON_KEY&&!SUPABASE_ANON_KEY.includes('YOUR_')&&window.supabase;
+let sb=null,syncTimer=null,syncBusy=false;
+function makeId(kind){return kind+'_'+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'_'+Math.random().toString(36).slice(2));}
+function status(msg,kind=''){const el=document.getElementById('syncStatus');if(el)el.innerHTML=`<span class="dot" style="background:${kind==='bad'?'#c84c4c':kind==='wait'?'#d69a22':'#22a06b'}"></span>${esc(msg)}`;}
+function scheduleSync(){if(!supabaseReady()){status(navigator.onLine?'Local only · Supabase not configured':'Offline · Saved locally','wait');return;}clearTimeout(syncTimer);status(navigator.onLine?'Saved locally · Sync queued':'Offline · Saved locally','wait');syncTimer=setTimeout(syncNow,700);}
+async function syncNow(){if(syncBusy||!supabaseReady()||!navigator.onLine)return;syncBusy=true;try{if(!sb)sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);status('Syncing...','wait');
+ // Pull first so a fresh device's starter catalog cannot overwrite newer cloud records.
+ const [pr,cr,br,ir,lr]=await Promise.all([sb.from('products').select('*'),sb.from('customers').select('*'),sb.from('bills').select('*'),sb.from('bill_items').select('*'),sb.from('customer_ledger_entries').select('*')]);
+ for(const r of [pr,cr,br,ir,lr])if(r.error)throw r.error;
+ mergeRemote('products',pr.data||[]);mergeRemote('customers',cr.data||[]);mergeLedgerRemote(lr.data||[]);
+ const deletedCustomerIds=db._sync.deletedCustomerIds||[];if(deletedCustomerIds.length){const {error}=await sb.from('customers').delete().in('id',deletedCustomerIds);if(error)throw error;db._sync.deletedCustomerIds=[];}
+ const deletedLedgerIds=db._sync.deletedLedgerEntryIds||[];if(deletedLedgerIds.length){const {error}=await sb.from('customer_ledger_entries').delete().in('id',deletedLedgerIds);if(error)throw error;db._sync.deletedLedgerEntryIds=[];}
+ const deletedIds=db._sync.deletedProductIds||[];if(deletedIds.length){const {error}=await sb.from('products').delete().in('id',deletedIds);if(error)throw error;db._sync.deletedProductIds=[];}
+ const itemMap=new Map();(ir.data||[]).forEach(i=>{const a=itemMap.get(i.bill_id)||[];a.push({id:i.product_id,name:i.product_name,unit:i.unit,qty:Number(i.qty),rate:Number(i.rate),amount:Number(i.amount)});itemMap.set(i.bill_id,a);});
+ (br.data||[]).forEach(x=>{const incoming={id:x.id,type:x.type,customerId:x.customer_id,customerName:x.customer_name,date:x.date,createdAt:x.created_at,items:itemMap.get(x.id)||[],total:Number(x.total),totalQty:Number(x.total_qty),updated_at:x.updated_at};const ix=db.bills.findIndex(y=>y.id===x.id);if(ix<0)db.bills.push(incoming);else if(new Date(incoming.updated_at||incoming.createdAt)>new Date(db.bills[ix].updated_at||db.bills[ix].createdAt))db.bills[ix]=incoming;});
+ // Upload with primary-key upserts: retries update the same rows, never create duplicates.
+ const products=db.products.map(p=>({id:p.id,name:p.name,category:p.category,unit:p.unit,wholesale:p.wholesale,retail:p.retail,updated_at:p.updated_at||'2000-01-01T00:00:00.000Z'}));
+ const customers=db.customers.map(c=>({id:c.id,name:c.name,phone:c.phone||'',updated_at:c.updated_at||'2000-01-01T00:00:00.000Z'}));
+ const bills=db.bills.map(b=>({id:b.id,type:b.type,customer_id:b.customerId||null,customer_name:b.customerName,date:b.date,created_at:b.createdAt,total:b.total,total_qty:b.totalQty,updated_at:b.updated_at||b.createdAt}));
+ if(products.length){const {error}=await sb.from('products').upsert(products,{onConflict:'id'});if(error)throw error;}
+ if(customers.length){const {error}=await sb.from('customers').upsert(customers,{onConflict:'id'});if(error)throw error;}
+ if(bills.length){const {error}=await sb.from('bills').upsert(bills,{onConflict:'id'});if(error)throw error;}
+ const items=db.bills.flatMap(b=>(b.items||[]).map((i,index)=>({id:b.id+'_'+index,bill_id:b.id,product_id:i.id,product_name:i.name,unit:i.unit,qty:i.qty,rate:i.rate,amount:i.amount})));
+ if(items.length){const {error}=await sb.from('bill_items').upsert(items,{onConflict:'id'});if(error)throw error;}
+ const ledgerRows=db.ledgerEntries.map(x=>({id:x.id,customer_id:x.customerId,entry_date:x.date,credit_given:x.creditGiven||0,credit_paid:x.creditPaid||0,note:x.note||'',created_at:x.createdAt,updated_at:x.updated_at||x.createdAt}));
+ if(ledgerRows.length){const {error}=await sb.from('customer_ledger_entries').upsert(ledgerRows,{onConflict:'id'});if(error)throw error;}
+ db._sync.lastSync=new Date().toISOString();localStorage.setItem(DB_KEY,JSON.stringify(db));
+ renderCatalog('retail');renderCatalog('wholesale');renderCart('retail');renderCart('wholesale');renderCustomers();renderItems();renderLedger();if(document.getElementById('page-reports').classList.contains('active'))renderReport();if(document.getElementById('page-sales-report').classList.contains('active'))renderSalesReport();status('Online · Synced');
+ }catch(e){console.error('VegBill sync error',e);status('Sync failed · Will retry','bad');}finally{syncBusy=false;}}
+function mergeRemote(key,rows){const map=new Map(db[key].map(x=>[String(x.id),x]));rows.forEach(r=>{if(key==='products'&&(db._sync.deletedProductIds||[]).includes(String(r.id)))return;if(key==='customers'&&(db._sync.deletedCustomerIds||[]).includes(String(r.id)))return;const x=key==='products'?{id:r.id,name:r.name,category:r.category,unit:r.unit,wholesale:Number(r.wholesale),retail:Number(r.retail),updated_at:r.updated_at}: {id:r.id,name:r.name,phone:r.phone||'',updated_at:r.updated_at};const old=map.get(String(x.id));if(!old)map.set(String(x.id),x);else if(new Date(x.updated_at||0)>new Date(old.updated_at||0))map.set(String(x.id),x);});db[key]=[...map.values()];}
+window.addEventListener('online',()=>{status('Connection restored · Syncing','wait');syncNow();});window.addEventListener('offline',()=>status('Offline · Saved locally','wait'));
+function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function money(n){return '₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function notify(s){const t=document.getElementById('toast');t.textContent=s;t.classList.add('show');clearTimeout(notify.timer);notify.timer=setTimeout(()=>t.classList.remove('show'),2200);}
+function product(id){return db.products.find(p=>p.id===id);}
+function page(name){document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page===name));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));if(name==='reports')renderReport();if(name==='sales-report')renderSalesReport();if(name==='customers')renderCustomers();if(name==='ledger')renderLedger();if(name==='items')renderItems();}
+document.querySelector('.nav').addEventListener('click',e=>{const b=e.target.closest('[data-page]');if(b)page(b.dataset.page);});
+function renderCatalog(type){
+ const search=document.getElementById(type+'Search').value.trim().toLowerCase(),category=cats[type];
+ const categories=['All',...new Set(db.products.map(p=>p.category))];
+ document.getElementById(type+'Cats').innerHTML=categories.map(c=>`<button class="cat ${category===c?'active':''}" data-cat="${c}" data-type="${type}">${c}</button>`).join('');
+ const filtered=db.products.filter(p=>(category==='All'||p.category===category)&&p.name.toLowerCase().includes(search));
+ document.getElementById(type+'Products').innerHTML=filtered.length?filtered.map(p=>`<button class="product" data-add="${p.id}" data-type="${type}"><div class="prodtop"><span class="emoji"></span><span class="plus">+</span></div><div><div class="prodname">${p.name}</div><div class="prodprice">${type==='retail'?'Retail':'Wholesale'} ${money(p[type])} / ${p.unit}</div></div></button>`).join(''):'<div class="empty">No products found.</div>';
+}
+['retail','wholesale'].forEach(type=>{
+ document.getElementById(type+'Search').addEventListener('input',()=>renderCatalog(type));
+ document.getElementById(type+'Cats').addEventListener('click',e=>{const b=e.target.closest('[data-cat]');if(!b)return;cats[type]=b.dataset.cat;renderCatalog(type);});
+ document.getElementById(type+'Products').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(b)addToCart(type,b.dataset.add);});
+});
+function addToCart(type,id){const line=carts[type].find(x=>x.id===id);if(line)line.qty=+(line.qty+1).toFixed(3);else carts[type].push({id,qty:1});renderCart(type);}
+function updatePrice(id,type,value){
+ if(value.trim()==='')return;const n=Number(value);if(!Number.isFinite(n)||n<0){notify('Enter a valid price.');return;}
+ const p=product(id);if(!p)return;p[type]=n;p.updated_at=new Date().toISOString();saveDB();
+ // The cart reads the current product master price, so this updates this bill immediately.
+ renderCatalog('retail');renderCatalog('wholesale');renderCart('retail');renderCart('wholesale');
+ notify(`${p.name} ${type} price updated for this and future bills.`);
+}
+function renderCart(type){
+ const host=document.getElementById(type+'Cart'),cart=carts[type],isWholesale=type==='wholesale';
+ const totalQty=cart.reduce((s,x)=>s+x.qty,0),total=cart.reduce((s,x)=>s+(product(x.id)?.[type]||0)*x.qty,0);
+ host.innerHTML=`<div class="carthead"><div class="carttitle"><h2>Current Bill</h2><span class="pill">${cart.length} ${cart.length===1?'ITEM':'ITEMS'}</span></div>
+ <div class="carttools"><span class="mutedlabel">${isWholesale?'Wholesale order':'Retail sale'}</span><span class="pill">${isWholesale?'WHOLESALE':'RETAIL'}</span></div></div>
+ ${isWholesale?`<div class="customerbox"><label>Wholesale customer / store</label><div class="customerrow"><select id="selectedCustomer"><option value="">Select customer</option>${db.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select><button type="button" id="quickAddCustomer">＋ Add</button></div></div>`:''}
+ <div class="pricehint">Edit either price in an item row. The selected selling price updates this bill immediately and is saved for future bills.</div>
+ <div class="cartlabels"><span>Product</span><span>Qty</span><span>Rate ₹</span><span></span></div>
+ <div class="cartlist">${cart.length?cart.map(x=>{const p=product(x.id);if(!p)return'';const rate=p[type];return `<div class="cartrowwrap"><div class="cartrow"><div><div class="itemname">${p.name}</div><div class="unit">per ${p.unit}</div></div><input class="qty" type="number" min=".001" step=".001" value="${x.qty}" data-qty="${p.id}" aria-label="Quantity"><input class="rate" type="number" min="0" step=".01" value="${rate}" data-active-rate="${p.id}" aria-label="Current selling rate"><button class="remove" data-remove="${p.id}" title="Remove">×</button></div>
+ <div class="pricepair"><div><label>Wholesale ₹ / ${p.unit}</label><input type="number" min="0" step=".01" value="${p.wholesale}" data-price="${p.id}" data-kind="wholesale"></div><div><label>Retail ₹ / ${p.unit}</label><input type="number" min="0" step=".01" value="${p.retail}" data-price="${p.id}" data-kind="retail"></div></div>
+ <div class="linetotal"><span>${x.qty} × ${money(rate)}</span><strong>${money(x.qty*rate)}</strong></div></div>`;}).join(''):'<div class="emptycart"><b>Your bill is empty</b><small>Select a product to add it here.</small></div>'}</div>
+ <div class="cartfoot"><div class="sumrow"><span>Total quantity (units combined)</span><strong>${totalQty.toLocaleString('en-IN',{maximumFractionDigits:3})}</strong></div><div class="sumrow grand"><span>Grand total</span><strong>${money(total)}</strong></div><div class="actions"><button class="btn" data-clear="${type}">Clear</button><button class="btn" data-print="${type}" ${cart.length?'':'disabled'}>Print</button><button class="btn primary" data-complete="${type}" ${cart.length?'':'disabled'}>Complete sale</button></div></div>`;
+ if(isWholesale){host.querySelector('#selectedCustomer').value=host.dataset.customerId||'';host.querySelector('#selectedCustomer').addEventListener('change',e=>host.dataset.customerId=e.target.value);host.querySelector('#quickAddCustomer').addEventListener('click',openCustomerModal);}
+ host.onchange=cartChange;host.onclick=cartClick;
+}
+function cartChange(e){
+ const host=e.currentTarget,type=host.id==='retailCart'?'retail':'wholesale';
+ const q=e.target.closest('[data-qty]');if(q){const line=carts[type].find(x=>x.id===q.dataset.qty),n=Number(q.value);if(!line)return;if(!Number.isFinite(n)||n<=0)carts[type]=carts[type].filter(x=>x.id!==q.dataset.qty);else line.qty=+n.toFixed(3);renderCart(type);return;}
+ const p=e.target.closest('[data-price]');if(p){updatePrice(p.dataset.price,p.dataset.kind,p.value);return;}
+ const active=e.target.closest('[data-active-rate]');if(active){updatePrice(active.dataset.activeRate,type,active.value);}
+}
+function cartClick(e){
+ const host=e.currentTarget,type=host.id==='retailCart'?'retail':'wholesale';
+ const rm=e.target.closest('[data-remove]');if(rm){carts[type]=carts[type].filter(x=>x.id!==rm.dataset.remove);renderCart(type);return;}
+ if(e.target.closest('[data-clear]')){if(carts[type].length&&confirm('Clear this bill?')){carts[type]=[];renderCart(type);}return;}
+ if(e.target.closest('[data-print]')){printCurrentBill(type);return;}
+ if(e.target.closest('[data-complete]'))completeSale(type);
+}
+function printCurrentBill(type){
+ const cart=carts[type];if(!cart.length){notify('Add items before printing.');return;}
+ let customerName='Retail customer';
+ if(type==='wholesale'){
+   const customerId=document.getElementById('selectedCustomer')?.value||'';
+   const customer=db.customers.find(c=>c.id===customerId);
+   if(!customer){notify('Select a wholesale customer before printing.');return;}
+   customerName=customer.name;
+ }
+ const lines=cart.map(x=>{const p=product(x.id);return{name:p.name,unit:p.unit,qty:x.qty,rate:p[type],amount:x.qty*p[type]};});
+ const total=lines.reduce((sum,x)=>sum+x.amount,0),qty=lines.reduce((sum,x)=>sum+x.qty,0);
+ const receipt=document.getElementById('printReceipt');
+ receipt.innerHTML=`<div class="receipt-center"><div class="receipt-brand">VEGBILL</div><div class="receipt-sub">VEGETABLE WHOLESALE & RETAIL</div></div>
+ <div class="receipt-rule"></div><div class="receipt-meta">Bill type: ${type.toUpperCase()}<br>Customer: ${esc(customerName)}<br>Date: ${new Date().toLocaleDateString('en-IN')}<br>Time: ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
+ <div class="receipt-rule"></div><table class="receipt-items"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead><tbody>${lines.map(x=>`<tr><td>${esc(x.name)}<br><small>per ${esc(x.unit)}</small></td><td class="num">${x.qty}</td><td class="num">${money(x.rate)}</td><td class="num">${money(x.amount)}</td></tr>`).join('')}</tbody></table>
+ <div class="receipt-rule"></div><div class="receipt-meta">Total quantity: ${qty.toLocaleString('en-IN',{maximumFractionDigits:3})}</div><div class="receipt-total"><span>GRAND TOTAL</span><span>${money(total)}</span></div><div class="receipt-rule"></div><div class="receipt-thanks">Thank you!<br>Visit Again</div>`;
+ window.print();
+}
+function completeSale(type){
+ const cart=carts[type];if(!cart.length)return;
+ let customerId=null,customerName='Retail customer';
+ if(type==='wholesale'){customerId=document.getElementById('selectedCustomer')?.value||'';const c=db.customers.find(x=>x.id===customerId);if(!c){notify('Select a wholesale customer before completing the bill.');return;}customerName=c.name;}
+ const lines=cart.map(x=>{const p=product(x.id);return{id:p.id,name:p.name,unit:p.unit,qty:x.qty,rate:p[type],amount:+(x.qty*p[type]).toFixed(2)};});
+ const bill={id:makeId('bill').toUpperCase(),type,customerId,customerName,date:today(),createdAt:new Date().toISOString(),items:lines,total:+lines.reduce((s,x)=>s+x.amount,0).toFixed(2),totalQty:+lines.reduce((s,x)=>s+x.qty,0).toFixed(3)};
+ db.bills.push(bill);saveDB();carts[type]=[];renderCart(type);notify(`${type==='retail'?'Retail':'Wholesale'} sale saved. ${bill.id}`);
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function refreshCustomerOptions(){const sel=document.getElementById('reportCustomer');const current=sel.value||'all';sel.innerHTML='<option value="all">All wholesale customers</option>'+db.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');sel.value=[...sel.options].some(o=>o.value===current)?current:'all';}
+function renderReport(){
+ refreshCustomerOptions();const from=document.getElementById('fromDate').value||today(),to=document.getElementById('toDate').value||today(),cid=document.getElementById('reportCustomer').value||'all';
+ const bills=db.bills.filter(b=>b.type==='wholesale'&&b.date>=from&&b.date<=to&&(cid==='all'||b.customerId===cid));
+ const agg=new Map();let value=0,qty=0;
+ bills.forEach(b=>{value+=b.total;qty+=b.totalQty;b.items.forEach(i=>{const old=agg.get(i.id)||{name:i.name,unit:i.unit,qty:0,amount:0};old.qty+=i.qty;old.amount+=i.amount;agg.set(i.id,old);});});
+ const rows=[...agg.values()].sort((a,b)=>a.name.localeCompare(b.name));
+ const customers=new Set(bills.map(b=>b.customerId)).size;
+ document.getElementById('reportBody').innerHTML=`<div class="stats"><div class="stat"><span>Wholesale bills</span><strong>${bills.length}</strong></div><div class="stat"><span>Customers billed</span><strong>${customers}</strong></div><div class="stat"><span>Total sales value</span><strong>${money(value)}</strong></div></div>
+ <div class="stats" style="grid-template-columns:1fr"><div class="stat"><span>Total quantity across products</span><strong>${qty.toLocaleString('en-IN',{maximumFractionDigits:3})}</strong></div></div>
+ <h3 class="reporttitle">Product-wise quantity sold</h3><div class="tablewrap"><table><thead><tr><th>Product</th><th>Quantity sold</th><th>Sales value</th></tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.qty.toLocaleString('en-IN',{maximumFractionDigits:3})} ${esc(r.unit)}</td><td>${money(r.amount)}</td></tr>`).join(''):'<tr><td colspan="3" style="text-align:center;color:#7b887f;padding:25px">No wholesale sales found for this date range.</td></tr>'}</tbody></table></div>
+ <p class="hint">Report period: ${from} to ${to}. Quantities are calculated from completed wholesale bills only. A customer's product totals are based on the selected customer and date range.</p>
+ <h3 class="reporttitle" style="margin-top:22px">Customer-wise summary</h3><div class="tablewrap"><table><thead><tr><th>Customer / Store</th><th>Bills</th><th>Total quantity</th><th>Total value</th></tr></thead><tbody>${customerSummary(bills)}</tbody></table></div>`;
+}
+function customerSummary(bills){const m=new Map();bills.forEach(b=>{const x=m.get(b.customerId)||{name:b.customerName,bills:0,qty:0,total:0};x.bills++;x.qty+=b.totalQty;x.total+=b.total;m.set(b.customerId,x);});const rows=[...m.values()].sort((a,b)=>a.name.localeCompare(b.name));return rows.length?rows.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.bills}</td><td>${x.qty.toLocaleString('en-IN',{maximumFractionDigits:3})}</td><td>${money(x.total)}</td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:#7b887f;padding:20px">No customer purchases in this period.</td></tr>';}
+function renderSalesReport(){
+ const from=document.getElementById('salesFromDate').value||today();
+ const to=document.getElementById('salesToDate').value||today();
+ const type=document.getElementById('salesReportType').value||'all';
+ const bills=db.bills.filter(b=>b.date>=from&&b.date<=to&&(type==='all'||b.type===type));
+ const agg=new Map();let totalValue=0,totalQty=0,retailBills=0,wholesaleBills=0;
+ bills.forEach(b=>{
+  totalValue+=Number(b.total||0);totalQty+=Number(b.totalQty||0);
+  if(b.type==='retail')retailBills++;else if(b.type==='wholesale')wholesaleBills++;
+  (b.items||[]).forEach(i=>{
+   const key=String(i.id||i.name)+'|'+String(i.unit||'');
+   const x=agg.get(key)||{name:i.name||'Unknown item',unit:i.unit||'',retailQty:0,wholesaleQty:0,retailValue:0,wholesaleValue:0,qty:0,value:0};
+   const q=Number(i.qty||0),v=Number(i.amount||q*Number(i.rate||0));
+   if(b.type==='retail'){x.retailQty+=q;x.retailValue+=v;}else{x.wholesaleQty+=q;x.wholesaleValue+=v;}
+   x.qty+=q;x.value+=v;agg.set(key,x);
+  });
+ });
+ const rows=[...agg.values()].sort((a,b)=>a.name.localeCompare(b.name));
+ const fmtQty=n=>Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:3});
+ document.getElementById('salesReportBody').innerHTML=`
+  <div class="stats"><div class="stat"><span>Total bills</span><strong>${bills.length}</strong></div><div class="stat"><span>Total items sold</span><strong>${fmtQty(totalQty)}</strong></div><div class="stat"><span>Total sales value</span><strong>${money(totalValue)}</strong></div></div>
+  <div class="sales-report-grid"><div class="stat"><span>Retail bills</span><strong>${retailBills}</strong></div><div class="stat"><span>Wholesale bills</span><strong>${wholesaleBills}</strong></div><div class="stat"><span>Different items sold</span><strong>${rows.length}</strong></div></div>
+  <h3 class="reporttitle">Item-wise sales</h3>
+  <div class="tablewrap"><table class="sales-report-table"><thead><tr><th>Item</th><th class="num">Retail qty</th><th class="num">Wholesale qty</th><th class="num">Total qty</th><th class="num">Sales value</th></tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td class="item">${esc(r.name)}<div style="font-size:10px;color:#738078;font-weight:500">${esc(r.unit)}</div></td><td class="num">${fmtQty(r.retailQty)}</td><td class="num">${fmtQty(r.wholesaleQty)}</td><td class="num"><strong>${fmtQty(r.qty)}</strong></td><td class="num">${money(r.value)}</td></tr>`).join(''):`<tr><td colspan="5" style="text-align:center;color:#7b887f;padding:25px">No sales found for this date range.</td></tr>`}</tbody></table></div>
+  <p class="hint">Report period: ${esc(from)} to ${esc(to)}. Includes saved/completed bills only. Item quantities and sales values are taken from each bill's saved item details, so later product price changes do not alter past sales.</p>`;
+}
+
+function renderCustomers(){
+ const host=document.getElementById('customerList');
+ host.innerHTML=db.customers.length?db.customers.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>{const n=db.bills.filter(b=>b.type==='wholesale'&&b.customerId===c.id).length;return `<div class="customer-card"><h3>${esc(c.name)}</h3><p>${c.phone?esc(c.phone)+' · ':''}${n} completed wholesale bills</p><button data-view-customer="${esc(c.id)}">View purchase report</button><div class="customer-actions"><button data-edit-customer="${esc(c.id)}">Edit customer</button><button class="danger" data-delete-customer="${esc(c.id)}">Delete customer</button></div></div>`;}).join(''):'<div class="empty" style="width:100%">No wholesale customers added yet. Use “Add customer” to create the first one.</div>';
+ host.querySelectorAll('[data-view-customer]').forEach(b=>b.addEventListener('click',()=>{page('reports');document.getElementById('reportCustomer').value=b.dataset.viewCustomer;renderReport();}));
+ host.querySelectorAll('[data-edit-customer]').forEach(b=>b.addEventListener('click',()=>openCustomerModal(b.dataset.editCustomer)));
+ host.querySelectorAll('[data-delete-customer]').forEach(b=>b.addEventListener('click',()=>deleteCustomer(b.dataset.deleteCustomer)));
+}
+function mergeLedgerRemote(rows){
+ const map=new Map(db.ledgerEntries.map(x=>[String(x.id),x]));
+ rows.forEach(r=>{if((db._sync.deletedLedgerEntryIds||[]).includes(String(r.id)))return;const x={id:r.id,customerId:r.customer_id,date:r.entry_date,creditGiven:Number(r.credit_given||0),creditPaid:Number(r.credit_paid||0),note:r.note||'',createdAt:r.created_at||r.entry_date,updated_at:r.updated_at||r.created_at};const old=map.get(String(x.id));if(!old||new Date(x.updated_at||0)>new Date(old.updated_at||0))map.set(String(x.id),x);});
+ db.ledgerEntries=[...map.values()];
+}
+let editingLedgerId=null;
+function ledgerEntriesFor(customerId){return db.ledgerEntries.filter(x=>x.customerId===customerId).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.createdAt||'').localeCompare(b.createdAt||''));}
+function ledgerBalance(customerId){return ledgerEntriesFor(customerId).reduce((v,x)=>v+Number(x.creditGiven||0)-Number(x.creditPaid||0),0);}
+function renderLedger(){
+ const select=document.getElementById('ledgerCustomer'),formSelect=document.getElementById('ledgerFormCustomer');if(!select)return;
+ const current=select.value;const opts='<option value="">Select customer</option>'+db.customers.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+ select.innerHTML=opts;formSelect.innerHTML=opts;if(db.customers.some(c=>c.id===current))select.value=current;
+ const customerId=select.value,host=document.getElementById('ledgerContent');
+ if(!customerId){host.innerHTML='<div class="ledger-empty">Select a customer to view their ledger. Add customers from the Customers page.</div>';document.getElementById('ledgerEntryCount').textContent=`${db.ledgerEntries.length} total entries`;return;}
+ const c=db.customers.find(x=>x.id===customerId),entries=ledgerEntriesFor(customerId);let balance=0,totalGiven=0,totalPaid=0;
+ const rows=entries.map(x=>{const given=Number(x.creditGiven||0),paid=Number(x.creditPaid||0);totalGiven+=given;totalPaid+=paid;balance+=given-paid;return `<tr><td>${esc(x.date||'')}</td><td>${x.note?esc(x.note):'—'}</td><td class="num">${given?money(given):'—'}</td><td class="num">${paid?money(paid):'—'}</td><td class="num"><strong>${money(balance)}</strong></td><td><div class="ledger-actions"><button data-edit-ledger="${esc(x.id)}">Edit</button><button class="del" data-delete-ledger="${esc(x.id)}">Delete</button></div></td></tr>`;}).join('');
+ document.getElementById('ledgerEntryCount').textContent=`${entries.length} entries`;
+ host.innerHTML=`<div class="ledger-customer-title">${esc(c?.name||'Customer ledger')}</div><div class="ledger-summary"><div class="stat"><span>Total Credit Given</span><strong>${money(totalGiven)}</strong></div><div class="stat"><span>Total Credit Paid</span><strong>${money(totalPaid)}</strong></div><div class="stat"><span>Balance Due</span><strong>${money(balance)}</strong></div></div><div class="ledger-table tablewrap"><table><thead><tr><th>Date</th><th>Description</th><th class="num">Credit Given</th><th class="num">Credit Paid</th><th class="num">Balance</th><th>Actions</th></tr></thead><tbody>${rows||'<tr><td colspan="6" style="text-align:center;color:#7b887f;padding:25px">No ledger entries yet. Add the opening balance or first transaction.</td></tr>'}</tbody></table></div>`;
+}
+function openLedgerModal(id=null){
+ editingLedgerId=id;const x=id?db.ledgerEntries.find(y=>y.id===id):null;const selected=document.getElementById('ledgerCustomer').value;
+ document.getElementById('ledgerModalTitle').textContent=x?'Edit ledger entry':'Add ledger entry';document.getElementById('ledgerFormCustomer').value=x?.customerId||selected||'';document.getElementById('ledgerDate').value=x?.date||today();document.getElementById('ledgerNote').value=x?.note||'';document.getElementById('ledgerCreditGiven').value=x?.creditGiven??'';document.getElementById('ledgerCreditPaid').value=x?.creditPaid??'';
+ document.getElementById('ledgerModal').classList.add('show');document.getElementById('ledgerFormCustomer').focus();
+}
+function closeLedgerModal(){document.getElementById('ledgerModal').classList.remove('show');editingLedgerId=null;}
+document.getElementById('ledgerCustomer').addEventListener('change',renderLedger);
+document.getElementById('addLedgerEntryBtn').addEventListener('click',()=>{if(!db.customers.length){notify('Add a customer first from the Customers page.');return;}openLedgerModal();});
+document.getElementById('cancelLedger').addEventListener('click',closeLedgerModal);
+document.getElementById('ledgerModal').addEventListener('click',e=>{if(e.target.id==='ledgerModal')closeLedgerModal();});
+document.getElementById('saveLedger').addEventListener('click',()=>{
+ const customerId=document.getElementById('ledgerFormCustomer').value,date=document.getElementById('ledgerDate').value,note=document.getElementById('ledgerNote').value.trim(),givenRaw=document.getElementById('ledgerCreditGiven').value,paidRaw=document.getElementById('ledgerCreditPaid').value,given=Number(givenRaw||0),paid=Number(paidRaw||0);
+ if(!customerId||!date){notify('Select a customer and date.');return;}if((givenRaw===''&&paidRaw==='')||!Number.isFinite(given)||!Number.isFinite(paid)||given<0||paid<0||(given===0&&paid===0)){notify('Enter a credit given or credit paid amount.');return;}if(given>0&&paid>0){notify('Enter either Credit Given or Credit Paid in one entry.');return;}
+ const stamp=new Date().toISOString();if(editingLedgerId){const x=db.ledgerEntries.find(y=>y.id===editingLedgerId);if(!x)return;Object.assign(x,{customerId,date,note,creditGiven:given,creditPaid:paid,updated_at:stamp});}else db.ledgerEntries.push({id:makeId('ledger'),customerId,date,note,creditGiven:given,creditPaid:paid,createdAt:stamp,updated_at:stamp});
+ saveDB();closeLedgerModal();document.getElementById('ledgerCustomer').value=customerId;renderLedger();notify('Ledger entry saved.');
+});
+document.getElementById('ledgerContent').addEventListener('click',e=>{
+ const edit=e.target.closest('[data-edit-ledger]');if(edit){openLedgerModal(edit.dataset.editLedger);return;}const del=e.target.closest('[data-delete-ledger]');if(!del)return;const id=del.dataset.deleteLedger;if(!confirm('Delete this ledger entry? The customer balance will be recalculated.'))return;db.ledgerEntries=db.ledgerEntries.filter(x=>x.id!==id);db._sync.deletedLedgerEntryIds=db._sync.deletedLedgerEntryIds||[];if(!db._sync.deletedLedgerEntryIds.includes(id))db._sync.deletedLedgerEntryIds.push(id);saveDB();renderLedger();notify('Ledger entry deleted.');
+});
+
+let editingItemId=null;
+function renderItems(){
+ const host=document.getElementById('itemList');if(!host)return;
+ const q=(document.getElementById('itemSearch')?.value||'').trim().toLowerCase();
+ const rows=db.products.filter(p=>p.name.toLowerCase().includes(q)||p.category.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
+ document.getElementById('itemCount').textContent=`${db.products.length} items`;
+ host.innerHTML=rows.length?`<table><thead><tr><th>Item</th><th>Category</th><th>Unit</th><th>Wholesale</th><th>Retail</th><th style="text-align:right">Actions</th></tr></thead><tbody>${rows.map(p=>`<tr><td><strong>${esc(p.name)}</strong></td><td>${esc(p.category)}</td><td>${esc(p.unit)}</td><td>${money(p.wholesale)}</td><td>${money(p.retail)}</td><td><div class="item-actions"><button data-edit-item="${esc(p.id)}">Edit</button><button class="delete" data-delete-item="${esc(p.id)}">Delete</button></div></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No items found. Add your first item.</div>';
+}
+function openItemModal(id=null){
+ editingItemId=id;const p=id?product(id):null;
+ document.getElementById('itemModalTitle').textContent=p?'Edit item':'Add item';
+ document.getElementById('itemName').value=p?.name||'';document.getElementById('itemCategory').value=p?.category||'Vegetables';document.getElementById('itemUnit').value=p?.unit||'kg';document.getElementById('itemWholesale').value=p?.wholesale??'';document.getElementById('itemRetail').value=p?.retail??'';
+ document.getElementById('itemModal').classList.add('show');document.getElementById('itemName').focus();
+}
+function closeItemModal(){document.getElementById('itemModal').classList.remove('show');editingItemId=null;}
+document.getElementById('addItemBtn').addEventListener('click',()=>openItemModal());
+document.getElementById('cancelItem').addEventListener('click',closeItemModal);
+document.getElementById('itemModal').addEventListener('click',e=>{if(e.target.id==='itemModal')closeItemModal();});
+document.getElementById('itemSearch').addEventListener('input',renderItems);
+document.getElementById('itemList').addEventListener('click',e=>{
+ const edit=e.target.closest('[data-edit-item]');if(edit){openItemModal(edit.dataset.editItem);return;}
+ const del=e.target.closest('[data-delete-item]');if(!del)return;const id=del.dataset.deleteItem,p=product(id);if(!p)return;
+ if(!confirm(`Delete ${p.name}? It will be removed from the item list. Existing bills will remain unchanged.`))return;
+ db.products=db.products.filter(x=>x.id!==id);db._sync.deletedProductIds=db._sync.deletedProductIds||[];if(!db._sync.deletedProductIds.includes(id))db._sync.deletedProductIds.push(id);
+ carts.retail=carts.retail.filter(x=>x.id!==id);carts.wholesale=carts.wholesale.filter(x=>x.id!==id);saveDB();renderItems();renderCatalog('retail');renderCatalog('wholesale');renderCart('retail');renderCart('wholesale');notify('Item deleted.');
+});
+document.getElementById('saveItem').addEventListener('click',()=>{
+ const name=document.getElementById('itemName').value.trim(),category=document.getElementById('itemCategory').value.trim(),unit=document.getElementById('itemUnit').value.trim();
+ const wholesale=Number(document.getElementById('itemWholesale').value),retail=Number(document.getElementById('itemRetail').value);
+ if(!name||!category||!unit){notify('Enter item name, category and unit.');return;}
+ if(document.getElementById('itemWholesale').value===''||document.getElementById('itemRetail').value===''||!Number.isFinite(wholesale)||!Number.isFinite(retail)||wholesale<0||retail<0){notify('Enter valid wholesale and retail prices.');return;}
+ const duplicate=db.products.find(p=>p.name.toLowerCase()===name.toLowerCase()&&p.id!==editingItemId);if(duplicate){notify('An item with this name already exists. Edit the existing item instead.');return;}
+ const stamp=new Date().toISOString(),wasEditing=!!editingItemId;
+ if(editingItemId){const p=product(editingItemId);if(!p)return;Object.assign(p,{name,category,unit,wholesale,retail,updated_at:stamp});}
+ else{db.products.push({id:makeId('product'),name,category,unit,wholesale,retail,updated_at:stamp});}
+ saveDB();closeItemModal();renderItems();renderCatalog('retail');renderCatalog('wholesale');renderCart('retail');renderCart('wholesale');notify(wasEditing?'Item updated.':'Item added.');
+});
+
+let editingCustomerId=null;
+function openCustomerModal(id=null){
+ editingCustomerId=id;const c=id?db.customers.find(x=>x.id===id):null;
+ document.getElementById('customerModalTitle').textContent=c?'Edit wholesale customer':'Add wholesale customer';
+ document.getElementById('saveCustomer').textContent=c?'Update customer':'Save customer';
+ document.getElementById('newCustomerName').value=c?.name||'';document.getElementById('newCustomerPhone').value=c?.phone||'';
+ document.getElementById('customerModal').classList.add('show');document.getElementById('newCustomerName').focus();
+}
+function closeCustomerModal(){document.getElementById('customerModal').classList.remove('show');editingCustomerId=null;document.getElementById('newCustomerName').value='';document.getElementById('newCustomerPhone').value='';}
+function deleteCustomer(id){
+ const c=db.customers.find(x=>x.id===id);if(!c)return;
+ const hasBills=db.bills.some(b=>b.type==='wholesale'&&b.customerId===id),hasLedger=db.ledgerEntries.some(x=>x.customerId===id);
+ if(hasBills||hasLedger){notify('Cannot delete: this customer has bills or ledger entries. Keep the account to preserve its history.');return;}
+ if(!confirm(`Delete customer ${c.name}? This cannot be undone.`))return;
+ db.customers=db.customers.filter(x=>x.id!==id);db._sync.deletedCustomerIds=db._sync.deletedCustomerIds||[];if(!db._sync.deletedCustomerIds.includes(id))db._sync.deletedCustomerIds.push(id);
+ saveDB();renderCustomers();renderCart('wholesale');refreshCustomerOptions();renderLedger();notify('Customer deleted.');
+}
+document.getElementById('addCustomerBtn').addEventListener('click',()=>openCustomerModal());
+document.getElementById('cancelCustomer').addEventListener('click',closeCustomerModal);
+document.getElementById('saveCustomer').addEventListener('click',()=>{
+ const name=document.getElementById('newCustomerName').value.trim(),phone=document.getElementById('newCustomerPhone').value.trim();
+ if(!name){notify('Enter a customer or store name.');return;}
+ if(db.customers.some(c=>c.name.toLowerCase()===name.toLowerCase()&&c.id!==editingCustomerId)){notify('This customer already exists.');return;}
+ const stamp=new Date().toISOString();
+ if(editingCustomerId){const c=db.customers.find(x=>x.id===editingCustomerId);if(!c)return;Object.assign(c,{name,phone,updated_at:stamp});}
+ else db.customers.push({id:makeId('customer'),name,phone,updated_at:stamp});
+ const wasEditing=!!editingCustomerId;saveDB();closeCustomerModal();renderCustomers();renderCart('wholesale');refreshCustomerOptions();renderLedger();notify(wasEditing?'Customer updated.':'Customer added.');
+});
+document.getElementById('customerModal').addEventListener('click',e=>{if(e.target.id==='customerModal')closeCustomerModal();});
+document.getElementById('applyReport').addEventListener('click',renderReport);
+document.getElementById('applySalesReport').addEventListener('click',renderSalesReport);
+document.getElementById('todaySalesReport').addEventListener('click',()=>{document.getElementById('salesFromDate').value=today();document.getElementById('salesToDate').value=today();renderSalesReport();});
+document.getElementById('todayReport').addEventListener('click',()=>{document.getElementById('fromDate').value=today();document.getElementById('toDate').value=today();renderReport();});
+document.getElementById('fromDate').value=today();document.getElementById('toDate').value=today();document.getElementById('salesFromDate').value=today();document.getElementById('salesToDate').value=today();
+renderCatalog('retail');renderCatalog('wholesale');renderCart('retail');renderCart('wholesale');renderCustomers();renderLedger();renderItems();renderReport();renderSalesReport();
+status(navigator.onLine?'Local data ready · Configure Supabase to sync':'Offline · Saved locally','wait');if(supabaseReady())syncNow();
+})();
+</script>
+</body>
+</html>
