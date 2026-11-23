@@ -113,7 +113,7 @@ th,td{border-bottom-color:#e9e5da}
 <body>
 <header class="topbar">
   <div class="brand"><div class="brandmark">F</div><span class="brandname">FATHIMAS <small>VEGETABLES &amp; FRUITS</small></span></div>
-  <div class="topacts"><span class="topmeta" id="syncStatusWrap"><span id="syncStatus"><span class="dot"></span>Loading…</span></span> <button class="btn" id="refreshBtn">Refresh</button> <button class="btn" id="uploadBtn">Upload JSON</button><input type="file" id="fileIn" accept=".json,application/json" multiple style="display:none"> <button class="btn primary" id="exportBtn">Export JSON &amp; clear tables</button></div>
+  <div class="topacts"><span class="topmeta" id="syncStatusWrap"><span id="syncStatus"><span class="dot"></span>Loading…</span></span> <button class="btn" id="refreshBtn">Refresh</button> <button class="btn" id="uploadBtn">Upload JSON</button><button class="btn" id="clearFileBtn">Clear local storage</button><input type="file" id="fileIn" accept=".json,application/json" multiple style="display:none"> <button class="btn primary" id="exportBtn">Export JSON &amp; clear tables</button></div>
 </header>
 <div class="shell">
   <nav class="nav">
@@ -184,6 +184,18 @@ const SUPABASE_URL='https://vypqxnwvgeskugsmtzvu.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_DBtO5XkgjX-8wiFz-tPR-A_pWiOSYBa';
 let sb=null,busy=false,db={products:[],customers:[],bills:[],ledgerEntries:[]},cloud={},file={},fileCount=0,datesTouched=false;
 KEYS.forEach(k=>{cloud[k]=[];file[k]=[]});
+/* Uploaded data is kept in the browser's localStorage (IndexedDB is only a fallback if localStorage is full) */
+const LS_KEY='fathimas_archive_file';
+const store={
+ open(){return new Promise((res,rej)=>{const r=indexedDB.open('fathimas_archive',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});},
+ async idbGet(){try{const d=await this.open();return await new Promise((res,rej)=>{const q=d.transaction('kv').objectStore('kv').get('file');q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}catch(e){return null;}},
+ async idbSet(v){try{const d=await this.open();await new Promise((res,rej)=>{const t=d.transaction('kv','readwrite');if(v==null)t.objectStore('kv').delete('file');else t.objectStore('kv').put(v,'file');t.oncomplete=res;t.onerror=()=>rej(t.error);});return true;}catch(e){return false;}},
+ async get(){try{const v=JSON.parse(localStorage.getItem(LS_KEY));if(v)return v;}catch(e){}return await this.idbGet();},
+ async set(v){try{localStorage.setItem(LS_KEY,JSON.stringify(v));await this.idbSet(null);return 'local';}catch(e){return (await this.idbSet(v))?'idb':false;}},
+ async clear(){try{localStorage.removeItem(LS_KEY);}catch(e){}await this.idbSet(null);}
+};
+async function saveFile(){const r=await store.set({file,fileCount});if(!r)status('Could not save the uploaded data in this browser · it will be lost on reload','bad');else if(r==='idb')status('Browser local storage is full · saved using backup browser storage instead','wait');}
+async function loadFile(){const d=await store.get();if(d&&d.file){KEYS.forEach(k=>{file[k]=Array.isArray(d.file[k])?d.file[k]:[]});fileCount=d.fileCount||0;}}
 function client(){if(!sb)sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);return sb}
 function status(msg,kind=''){const el=document.getElementById('syncStatus');if(el)el.innerHTML=`<span class="dot" style="background:${kind==='bad'?'#c84c4c':kind==='wait'?'#d69a22':'#22a06b'}"></span>${esc(msg)}`;}
 const ts=r=>new Date(r.updated_at||r.created_at||0).getTime()||0;
@@ -213,7 +225,7 @@ async function upload(files){
  let added=0;
  for(const f of files){try{const d=await readFile(f),t=d&&d.tables;if(!t||!KEYS.some(k=>Array.isArray(t[k])))throw new Error(f.name+' is not an archive file from this page');KEYS.forEach(k=>{if(Array.isArray(t[k])){file[k].push(...t[k]);added+=t[k].length}});fileCount++;}catch(e){alert(e.message)}}
  KEYS.forEach(k=>{const m=new Map();file[k].forEach(r=>{if(r&&r.id!=null){const o=m.get(String(r.id));if(!o||ts(r)>=ts(o))m.set(String(r.id),r)}});file[k]=[...m.values()]});
- status('Uploaded '+added+' records · shown together with the Supabase tables');renderAll();
+ await saveFile();status('Uploaded '+added+' records · saved in browser local storage · shown together with the Supabase tables');renderAll();
 }
 async function exportAndClear(){
  if(busy)return;
@@ -231,7 +243,7 @@ async function exportAndClear(){
   if(!confirm('The file has been downloaded ('+Object.values(counts).reduce((x,y)=>x+y,0)+' records).\n\nCheck that it saved. Press OK to clear '+total+' rows from the Supabase tables, or Cancel to keep them.')){status('Exported. Tables were NOT cleared.','wait');return;}
   status('Clearing tables…','wait');const failed=[];
   for(const k of ['bill_items','bills','ledger_entries','customers','products']){const ids=cloud[k].map(r=>r.id);for(let i=0;i<ids.length;i+=100){const chunk=ids.slice(i,i+100);const {data,error}=await client().from(T[k]).delete().in('id',chunk).select('id');if(error)throw error;if((data||[]).length!==chunk.length)failed.push(k);}}
-  KEYS.forEach(k=>{file[k]=all[k];cloud[k]=[]});fileCount++;
+  KEYS.forEach(k=>{file[k]=all[k];cloud[k]=[]});fileCount++;await saveFile();
   status(failed.length?'Exported, but some rows could not be deleted ('+[...new Set(failed)].join(', ')+'). Check Supabase delete permissions.':'Exported and tables cleared · '+new Date().toLocaleTimeString(),failed.length?'bad':'');
  }catch(e){console.error(e);status('Failed: '+(e.message||e)+' · Tables were not fully cleared.','bad');}
  finally{busy=false;document.getElementById('exportBtn').disabled=false;renderAll();}
@@ -317,7 +329,8 @@ document.getElementById('refreshBtn').onclick=refresh;
 document.getElementById('exportBtn').onclick=exportAndClear;
 document.getElementById('uploadBtn').onclick=()=>document.getElementById('fileIn').click();
 document.getElementById('fileIn').onchange=e=>{if(e.target.files.length)upload([...e.target.files]);e.target.value='';};
-renderAll();refresh();
+document.getElementById('clearFileBtn').onclick=async()=>{if(!confirm('Clear EVERYTHING stored in this browser by this page?\n\nAll uploaded JSON data will be removed. The Supabase tables are not touched.'))return;KEYS.forEach(k=>file[k]=[]);fileCount=0;await store.clear();status('Local storage cleared');renderAll();};
+(async()=>{await loadFile();renderAll();if(fileCount)status('Loaded saved uploaded data · reading Supabase…','wait');refresh();})();
 })();
 </script>
 </body>
