@@ -258,7 +258,11 @@ function getSB(){if(!sb)sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_AN
 async function syncNow(full=false){if(syncBusy||!supabaseReady()||!navigator.onLine)return;syncBusy=true;try{const c=getSB();status('Backing up...','wait');
  const since=full===true?null:(db._sync.lastPush||null),startedAt=new Date().toISOString();
  const changed=x=>!since||new Date(x.updated_at||x.createdAt||0)>new Date(since);
- const deletedCustomerIds=db._sync.deletedCustomerIds||[];if(deletedCustomerIds.length){const {error}=await c.from('vegetablecustomers').delete().in('id',deletedCustomerIds);if(error)throw error;db._sync.deletedCustomerIds=[];}
+ const deletedCustomerIds=db._sync.deletedCustomerIds||[];if(deletedCustomerIds.length){
+  {const {error}=await c.from('vegetablecustomer_ledger_entries').delete().in('customer_id',deletedCustomerIds);if(error)throw error;}
+  let r=await c.from('vegetablecustomers').delete().in('id',deletedCustomerIds);
+  if(r.error){const u=await c.from('vegetablebills').update({customer_id:null}).in('customer_id',deletedCustomerIds);if(u.error)throw u.error;r=await c.from('vegetablecustomers').delete().in('id',deletedCustomerIds);}
+  if(r.error)throw r.error;db._sync.deletedCustomerIds=[];}
  const deletedLedgerIds=db._sync.deletedLedgerEntryIds||[];if(deletedLedgerIds.length){const {error}=await c.from('vegetablecustomer_ledger_entries').delete().in('id',deletedLedgerIds);if(error)throw error;db._sync.deletedLedgerEntryIds=[];}
  const deletedIds=db._sync.deletedProductIds||[];if(deletedIds.length){const {error}=await c.from('vegetableproducts').delete().in('id',deletedIds);if(error)throw error;db._sync.deletedProductIds=[];}
  const products=db.products.filter(changed).map(p=>({id:p.id,name:p.name,category:p.category,unit:p.unit,wholesale:p.wholesale,retail:p.retail,updated_at:p.updated_at||'2000-01-01T00:00:00.000Z'}));
@@ -529,11 +533,17 @@ function openCustomerModal(id=null){
 function closeCustomerModal(){document.getElementById('customerModal').classList.remove('show');editingCustomerId=null;document.getElementById('newCustomerName').value='';document.getElementById('newCustomerPhone').value='';}
 function deleteCustomer(id){
  const c=db.customers.find(x=>x.id===id);if(!c)return;
- const hasBills=db.bills.some(b=>b.type==='wholesale'&&b.customerId===id),hasLedger=db.ledgerEntries.some(x=>x.customerId===id);
- if(hasBills||hasLedger){notify('Cannot delete: this customer has bills or ledger entries. Keep the account to preserve its history.');return;}
- if(!confirm(`Delete customer ${c.name}? This cannot be undone.`))return;
+ const nBills=db.bills.filter(b=>b.type==='wholesale'&&b.customerId===id).length,ledger=db.ledgerEntries.filter(x=>x.customerId===id);
+ let msg=`Delete store "${c.name}"?`;
+ if(nBills||ledger.length)msg+=`\n\nIt has ${nBills} wholesale bill(s) and ${ledger.length} ledger entr${ledger.length===1?'y':'ies'}.\n• Past bills stay in the reports under this store's name.\n• Its ledger entries will be deleted.`;
+ msg+='\n\nThis cannot be undone.';
+ if(!confirm(msg))return;
+ db._sync.deletedLedgerEntryIds=db._sync.deletedLedgerEntryIds||[];
+ ledger.forEach(x=>{if(!db._sync.deletedLedgerEntryIds.includes(x.id))db._sync.deletedLedgerEntryIds.push(x.id);});
+ db.ledgerEntries=db.ledgerEntries.filter(x=>x.customerId!==id);
  db.customers=db.customers.filter(x=>x.id!==id);db._sync.deletedCustomerIds=db._sync.deletedCustomerIds||[];if(!db._sync.deletedCustomerIds.includes(id))db._sync.deletedCustomerIds.push(id);
- saveDB();renderCustomers();renderCart('wholesale');refreshCustomerOptions();renderLedger();notify('Customer deleted.');
+ const sel=document.getElementById('ledgerCustomer');if(sel&&sel.value===id)sel.value='';
+ saveDB();renderCustomers();renderCart('wholesale');refreshCustomerOptions();renderLedger();notify('Store deleted.');
 }
 document.getElementById('addCustomerBtn').addEventListener('click',()=>openCustomerModal());
 document.getElementById('cancelCustomer').addEventListener('click',closeCustomerModal);
